@@ -1,0 +1,46 @@
+/**
+ * @file crc.cpp
+ * @author Daniel Dew
+ * @brief Contains implementation for CRC related utilities.
+ * @version 0.1
+ * @date 2026-04-11
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
+
+#include "smart-serial/crc.hpp"
+#include <cstddef>
+#include <cstdint>
+
+using namespace Smart_serial;
+
+uint16_t CRC::compute_crc16(const uint8_t* const data, uint16_t length) {
+
+    // Constants for CRC calculation
+    const uint8_t BITS = 8U;
+    const uint16_t POLY = 0x1021U; // CRC-CCITT polynomial
+    const uint16_t MSB_MASK = 0x8000U; // Mask to check the most significant bit (0b1000000000000000)
+
+    // Initialize CRC to 0xFFFF
+    uint16_t crc = 0xFFFF;
+    // Pointer to current byte being processed (inits to first)
+    const uint8_t* current_byte_ptr = data;
+
+    for (size_t byte_idx=0; byte_idx<length; ++byte_idx) {
+        // XOR the current byte (shifted to the upper byte) with the current CRC value
+        crc ^= static_cast<uint16_t>(static_cast<uint16_t>(*current_byte_ptr) << 8U);
+
+        ++current_byte_ptr; // Move pointer to next byte
+        
+        // If MSB is 1, shift left and XOR with polynomial, otherwise just shift left. Repeat for each bit.
+        for (uint8_t bit_idx=0; bit_idx<BITS; ++bit_idx) {
+            if ((crc & MSB_MASK) != 0U) {
+                crc = static_cast<uint16_t>((crc << 1U) ^ POLY);
+            } else {
+                crc <<= 1U;
+            }
+        }
+    }
+    return crc;
+}
