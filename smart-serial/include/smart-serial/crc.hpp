@@ -32,17 +32,18 @@ namespace Smart_serial { namespace CRC {
      * @param offset index at which the CRC is located in the data buffer
      * @return uint16_t the extracted 16 bit CRC
      */
-    uint16_t extract_crc16(uint8_t* data, uint16_t offset);
+    uint16_t extract_crc16(const uint8_t* const data, uint16_t offset);
 
     /**
      * @brief appends a CRC to the buffer with low byte first
      * 
      * @param buf buffer to append CRC to
+     * @param cap The maximum capacity of the buffer incl. CRC
      * @param offset index at which to insert the CRC
      * @param crc 16 bit CRC to append
      * @return uint16_t 1 if succesful, S_SERIAL_ERR if error.
      */
-    uint16_t append_crc16(uint8_t* buf, uint16_t offset, uint16_t crc);
+    uint32_t append_crc16(uint8_t* const buf, const std::size_t cap, const uint16_t offset, const uint16_t crc);
 
 }} // namespace CRC, Smart_serial
 
