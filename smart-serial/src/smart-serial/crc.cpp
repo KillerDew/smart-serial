@@ -11,6 +11,7 @@
 
 #include "smart-serial/crc.hpp"
 #include "smart-serial/error.h"
+#include "smart-serial/frame.hpp"
 #include <cstddef>
 #include <cstdint>
 
@@ -55,8 +56,8 @@ uint16_t CRC::extract_crc16(const uint8_t* const data, uint16_t offset) {
     uint16_t result = 0;
     if (data != NULL){
         // Extract little endian from data
-        uint8_t low_byte = data[offset];
-        uint8_t high_byte = data[offset+1U];
+        const uint8_t low_byte = data[offset];
+        const uint8_t high_byte = data[offset+1U];
 
         // reconstruct CRC from high byte and low byte (high byte shifted to top, ORed with low byte)
         result = static_cast<uint16_t>((high_byte << 8U) | low_byte);
@@ -85,6 +86,21 @@ uint32_t CRC::append_crc16(uint8_t* const  buf,
         buf[offset + 1U] = high_byte;
 
         result = 1U; // Successful
+    }
+
+    return result;
+}
+
+uint32_t CRC::append_crc16(Frame::Raw_frame *const raw_frame,
+                           const std::size_t cap,
+                           const uint16_t offset,
+                           const uint16_t crc) {
+    uint32_t result = S_SERIAL_ERR;
+    if (raw_frame != NULL){
+        result = append_crc16(raw_frame->data, cap, offset, crc);
+    }
+    if (result != S_SERIAL_ERR){
+        raw_frame->length += 2U;
     }
     
     return result;

@@ -12,10 +12,12 @@
 #ifndef SMART_SERIAL_CRC_HPP
 #define SMART_SERIAL_CRC_HPP
 
-
+#include "smart-serial/frame.hpp"
 #include <cstdint>
 
 namespace Smart_serial { namespace CRC {
+
+    static const size_t CRC_LENGTH = 2U;
 
     /**
      * @brief Computes a CRC16 checksum for the given data buffer and length.
@@ -45,6 +47,8 @@ namespace Smart_serial { namespace CRC {
      * @return uint16_t 1 if succesful, S_SERIAL_ERR if error.
      */
     uint32_t append_crc16(uint8_t* const buf, const std::size_t cap, const uint16_t offset, const uint16_t crc);
+
+    uint32_t append_crc16(Frame::Raw_frame* const frame, const std::size_t cap, const uint16_t offset, const uint16_t crc);
 
 }} // namespace CRC, Smart_serial
 
