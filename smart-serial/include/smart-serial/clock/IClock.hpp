@@ -18,17 +18,23 @@ namespace Smart_serial { namespace Clock {
 
     class I_clock {
         public:
-        
-            virtual ~I_clock();
+            /** @brief Trivial constructor */
+            virtual ~I_clock() {}
+            /**
+             * @brief Get the current run time
+             * @return uint32_t The time in milliseconds
+             */
             virtual uint32_t millis() const = 0;
-            virtual uint32_t delay(uint32_t delay_time) const = 0;
-            virtual uint32_t delayed_call(void (*func)(), uint32_t delay);
+            /**
+             * @brief Delay program execution
+             * @param delay_time Time in milliseconds to delay program
+             */
+            virtual void delay(uint32_t delay_time) const = 0;
         private:
-
             I_clock(const I_clock&) = delete;
             I_clock& operator=(const I_clock&) = delete;
     };
 
-}}
+}} // namespaces
 
 #endif // SMART_SERIAL_ICLOCK_HPP
