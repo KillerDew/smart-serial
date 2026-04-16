@@ -42,7 +42,7 @@ namespace Smart_serial {
              * 
              * @return int32_t the byte read, or S_SERIAL_ERR if no data is available
              */
-            virtual int32_t read_byte() = 0;
+            virtual uint8_t read_byte() = 0;
 
             /**
              * @brief flushes the recieve buffer, discarding all data in it.
