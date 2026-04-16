@@ -12,6 +12,7 @@
 #ifndef SMART_SERIAL_MASTER_HPP
 #define SMART_SERIAL_MASTER_HPP
 
+#include "clock/IClock.hpp"
 #include "frame.hpp"
 #include "port/iport.hpp"
 #include "error.h"
@@ -44,6 +45,7 @@ namespace Smart_serial {
             * @param defualt_timeout The default timeout to use when recieving/transacting
             */
             Master(const I_port& port,
+                   const Clock::I_clock& clock_,
                    const uint8_t slave_addr,
                    const uint32_t defualt_timeout);
 
@@ -93,6 +95,8 @@ namespace Smart_serial {
         private:
             const I_port& serial_port;
             const uint8_t slave_address;
+
+            const Clock::I_clock& clock;
 
             const uint32_t DEFUALT_TIMEOUT;
 
