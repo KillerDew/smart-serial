@@ -18,19 +18,19 @@
 
 /// @brief
 /// Return This on Byte Sized Return Error
-#define S_SERIAL_ERR_BYTE (INT8_MAX-1)
+#define S_SERIAL_ERR_BYTE (INT8_MIN)
 
 /// @brief
 /// Return This on 2 Byte Sized Return Error
-#define S_SERIAL_ERR_2_BYTE (INT16_MAX-1)
+#define S_SERIAL_ERR_2_BYTE (INT16_MIN)
 
 /// @brief
 /// Return This on 4 Byte Sized Return Error
-#define S_SERIAL_ERR (INT32_MAX-1)
+#define S_SERIAL_ERR (INT32_MIN)
 
 /// @brief
 /// Return This on 8 Byte Sized Return Error
-#define S_SERIAL_ERR_F (INFINITY-1)
+#define S_SERIAL_ERR_F (-INFINITY)
 
 /// @brief
 /// Return This on Success (1)
