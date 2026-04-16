@@ -52,7 +52,7 @@ namespace Smart_serial {
              * 
              * @return int32_t 
              */
-            int32_t read_byte() override;
+            uint8_t read_byte() override;
 
             /**
              * @brief Flushes rx buffer.
@@ -126,10 +126,10 @@ namespace Smart_serial {
     }
 
     template<uint16_t TX_CAP, uint16_t RX_CAP>
-    int32_t Mock_port<TX_CAP, RX_CAP>::read_byte() {
-        int32_t result = S_SERIAL_ERR;
+    uint8_t Mock_port<TX_CAP, RX_CAP>::read_byte() {
+        uint8_t result = S_SERIAL_ERR_BYTE;
         if (rx_read_head < rx_len) {
-            result = static_cast<int32_t>(rx_buf[rx_read_head]);
+            result = static_cast<uint8_t>(rx_buf[rx_read_head]);
             ++rx_read_head;
         }
         return result;

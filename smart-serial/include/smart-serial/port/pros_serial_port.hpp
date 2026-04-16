@@ -50,7 +50,7 @@ namespace Smart_serial {
              *
              * @return int32_t Byte value read, or S_SERIAL_ERR if no byte is available
              */
-            int32_t read_byte() override;
+            uint8_t read_byte() override;
 
             /**
              * @brief flush serial recieve buffer
