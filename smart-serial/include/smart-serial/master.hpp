@@ -60,7 +60,7 @@ namespace Smart_serial {
              * @return Receive_result, success (1) or appropriate error result 
              */
             Receive_result receive_packet(Packet_result* const packet_out,
-                                    uint32_t timeout,
+                                    const uint32_t timeout,
                                     bool check_crc);
 
             /**
@@ -90,7 +90,7 @@ namespace Smart_serial {
              * @param timeout The timeout to use. Defaults to 5 seconds
              * @return Receive_result The result of the transaction
              */
-            Receive_result handshake(uint32_t timeout);
+            Receive_result handshake(const uint32_t timeout);
             
             /** @brief set start byte for transmissions and receives
                 @param byte byte to use */
@@ -99,7 +99,7 @@ namespace Smart_serial {
             I_port& serial_port;
             uint8_t slave_address;
 
-            uint8_t start_byte;
+            uint8_t start_byte = 0xAA;
 
             const Clock::I_clock& clock;
 
@@ -112,7 +112,7 @@ namespace Smart_serial {
              * @param timeout The timeout to use, defaults to 3s
              * @return uint32_t 1 if successful, S_SERIAL_ERR if not
              */
-            uint32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, uint32_t timeout);
+            uint32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, const uint32_t timeout=0);
 
             Master(Master&) = delete;
             Master operator=(Master&) = delete;
