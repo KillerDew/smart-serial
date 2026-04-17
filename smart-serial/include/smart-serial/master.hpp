@@ -18,10 +18,9 @@
 #include "error.h"
 #include <cstdint>
 
-using namespace Smart_serial;
 namespace Smart_serial {
 
-    enum Recieve_result {
+    enum Receive_result {
         SUCCESS = 1,
         ERR_NACK = 0,
         ERR_CRC = -1,
@@ -38,29 +37,29 @@ namespace Smart_serial {
     class Master {
         public:
             /**
-            * @brief Construct a new Master object with port and a defualt timout
+            * @brief Construct a new Master object with port and a default timout
             * 
             * @param slave_addr The slave address byte
             * @param port An IPort reference (PROS wrapper or mock port)
-            * @param defualt_timeout The default timeout to use when recieving/transacting
+            * @param default_timeout The default timeout to use when receiving/transacting
             */
-            Master(const I_port& port,
-                   const Clock::I_clock& clock_,
+            Master(I_port& port,
+                   Clock::I_clock& clock_,
                    const uint8_t slave_addr,
-                   const uint32_t defualt_timeout);
+                   const uint32_t default_timeout);
 
             /** @brief Trivial constructor, no dynamic mem allocation */
-            ~Master();
+            ~Master() {};
 
             /**
-             * @brief Recieve a packet over the smart port
+             * @brief Receive a packet over the smart port
              * 
-             * @param packet_out The packet result from recieve
+             * @param packet_out The packet result from receive
              * @param timeout The timeout to use. Defaults to 5 seconds
              * @param check_crc Whether to check the crc or not
-             * @return Recieve_result, success (1) or appropriate error result 
+             * @return Receive_result, success (1) or appropriate error result 
              */
-            Recieve_result recieve_packet(Packet_result* const packet_out,
+            Receive_result receive_packet(Packet_result* const packet_out,
                                     uint32_t timeout,
                                     bool check_crc);
 
@@ -79,9 +78,9 @@ namespace Smart_serial {
              * @param packet_out The packet response from slave
              * @param frame_in The frame to send
              * @param timeout the timeout to use. Defaults to 5 seconds
-             * @return Recieve_result result of the transaction
+             * @return Receive_result result of the transaction
              */
-            Recieve_result transact(Packet_result* const packet_out,
+            Receive_result transact(Packet_result* const packet_out,
                               const Frame::Frame* const frame_in,
                               const uint32_t timeout);
 
@@ -89,16 +88,22 @@ namespace Smart_serial {
              * @brief Handshake with the slave
              * 
              * @param timeout The timeout to use. Defaults to 5 seconds
-             * @return Recieve_result The result of the transaction
+             * @return Receive_result The result of the transaction
              */
-            Recieve_result handshake(uint32_t timeout);
+            Receive_result handshake(uint32_t timeout);
+            
+            /** @brief set start byte for transmissions and receives
+                @param byte byte to use */
+            void set_start_byte(const uint8_t byte) { start_byte = byte; };
         private:
-            const I_port& serial_port;
-            const uint8_t slave_address;
+            I_port& serial_port;
+            uint8_t slave_address;
+
+            uint8_t start_byte;
 
             const Clock::I_clock& clock;
 
-            const uint32_t DEFUALT_TIMEOUT;
+            const uint32_t DEFAULT_TIMEOUT;
 
             /**
              * @brief Reads a raw frame from the ports buffer
