@@ -12,6 +12,7 @@
 #ifndef SMART_SERIAL_CRC_HPP
 #define SMART_SERIAL_CRC_HPP
 
+#include "crc.hpp"
 #include "smart-serial/frame.hpp"
 #include <cstdint>
 
@@ -27,6 +28,8 @@ namespace Smart_serial { namespace CRC {
      * @return uint16_t the 16 bit CRC checksum
      */
     uint16_t compute_crc16(const uint8_t* const data, uint16_t length);
+
+    uint16_t compute_crc16(const Frame::Raw_frame* const raw_frame);
 
     /**
      * @brief Extracts the 16 bit CRC
