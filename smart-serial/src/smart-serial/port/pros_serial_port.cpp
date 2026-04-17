@@ -36,16 +36,15 @@ int32_t Pros_serial_port::write(uint8_t *buf, uint16_t len) {
 }
 
 // Read byte is delegated to pros::Serial::read_byte()
-uint8_t Pros_serial_port::read_byte() {
+int32_t Pros_serial_port::read_byte() {
     const int32_t result = serial_port.read_byte();
-    // Convert PROS_ERR to S_SERIAL_ERR, otherwise return byte read.
-    return (result == PROS_ERR) ? S_SERIAL_ERR_BYTE : static_cast<uint8_t>(result);
+    return (result == PROS_ERR) ? S_SERIAL_ERR : result; // Convert PROS_ERR to S_SERIAL_ERR, otherwise return byte read.
 }
 
 void Pros_serial_port::flush_rx() {
     // Read bytes until no more are available, bounded to prevent infinite loop. AV Rule 113.
     for (uint16_t i = 0U; i < MAX_FLUSH_ITERS; ++i) {
-        if (read_byte() == S_SERIAL_ERR_BYTE) {
+        if (read_byte() == S_SERIAL_ERR) {
             break; // No more bytes available, exit loop.
         }
     }
