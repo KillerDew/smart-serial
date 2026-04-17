@@ -28,10 +28,9 @@ namespace Smart_serial {
         ERR_PROCESS = S_SERIAL_ERR
     };
 
-    struct Packet_result {
-        Frame::Frame frame;
-        uint16_t CRC;
-        bool passed_CRC;
+    enum Default_cmds {
+        ACK = 0x06,
+        NACK = 0x15
     };
 
     class Master {
@@ -59,19 +58,19 @@ namespace Smart_serial {
              * @param check_crc Whether to check the crc or not
              * @return Receive_result, success (1) or appropriate error result 
              */
-            Receive_result receive_packet(Packet_result* const packet_out,
+            Receive_result receive_packet(Frame::Frame* const frame_out,
                                     const uint32_t timeout,
-                                    bool check_crc);
+                                    bool check_crc=true);
 
             /**
              * @brief Send a frame
              * 
              * @param frame The frame to send
              * @param timeout the timeout to use. Defaults to 5 seconds
-             * @return uint32_t 1 if successful, S_SERIAL_ERR if not
+             * @return int32_t 1 if successful, S_SERIAL_ERR if not
              */
-            uint32_t send_frame(const Frame::Frame* const frame,
-                                const uint32_t timeout);
+            int32_t send_frame(const Frame::Frame* const frame,
+                                const uint32_t timeout=0U);
             /**
              * @brief 
              * 
@@ -80,9 +79,9 @@ namespace Smart_serial {
              * @param timeout the timeout to use. Defaults to 5 seconds
              * @return Receive_result result of the transaction
              */
-            Receive_result transact(Packet_result* const packet_out,
+            Receive_result transact(Frame::Frame* const frame_out,
                               const Frame::Frame* const frame_in,
-                              const uint32_t timeout);
+                              const uint32_t timeout=0U);
 
             /**
              * @brief Handshake with the slave
@@ -90,7 +89,7 @@ namespace Smart_serial {
              * @param timeout The timeout to use. Defaults to 5 seconds
              * @return Receive_result The result of the transaction
              */
-            Receive_result handshake(const uint32_t timeout);
+            Receive_result handshake(const uint32_t timeout=0U);
             
             /** @brief set start byte for transmissions and receives
                 @param byte byte to use */
@@ -112,7 +111,7 @@ namespace Smart_serial {
              * @param timeout The timeout to use, defaults to 3s
              * @return uint32_t 1 if successful, S_SERIAL_ERR if not
              */
-            uint32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, const uint32_t timeout=0);
+            int32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, const uint32_t timeout=0U);
 
             Master(Master&) = delete;
             Master operator=(Master&) = delete;

@@ -27,7 +27,8 @@ Master::Master(I_port& port,
                const uint8_t slave_addr,
                const uint32_t default_timeout)
                : serial_port(port), clock(clock_), slave_address(slave_addr), DEFAULT_TIMEOUT(default_timeout) {}
-uint32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
+
+int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
     uint32_t result = S_SERIAL_ERR;
     const uint32_t effective_timeout = (timeout == 0U) ? DEFAULT_TIMEOUT : timeout;
 
@@ -95,4 +96,28 @@ uint32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t t
     return result;
 }
 
-
+Receive_result Master::receive_packet(Frame::Frame* const frame_out,
+                                      const uint32_t timeout,
+                                      bool check_crc) {
+    Receive_result result = ERR_PROCESS;
+    Raw_frame raw_frame;
+    const int32_t read_raw_result = read_raw_frame(&raw_frame, timeout);
+    if (read_raw_result == 1U) {
+        const uint32_t crc_offset = raw_frame.length - CRC::CRC_LENGTH - 1U;
+        const uint16_t read_crc = CRC::extract_crc16(raw_frame.data, crc_offset);
+        const uint16_t expected_crc = CRC::compute_crc16(raw_frame.data, crc_offset);
+        if (read_crc == expected_crc) {
+            const uint32_t parse_result = parse_frame(frame_out, &raw_frame);
+            if (parse_result == 1U) {
+                if (frame_out->header.command == NACK) {
+                    result = ERR_NACK;
+                } else {
+                    result = SUCCESS;
+                }
+            }
+        } else{
+            result = ERR_CRC;
+        }
+    }
+    return result;
+}
