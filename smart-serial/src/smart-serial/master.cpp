@@ -15,7 +15,9 @@
 #include "frame.hpp"
 #include "smart-serial/clock/IClock.hpp"
 
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 using namespace Smart_serial;
 using namespace Smart_serial::Clock;
@@ -28,7 +30,7 @@ Master::Master(I_port& port,
                const uint32_t default_timeout)
                : serial_port(port), clock(clock_), slave_address(slave_addr), DEFAULT_TIMEOUT(default_timeout) {}
 
-int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
+uint32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
     uint32_t result = S_SERIAL_ERR;
     const uint32_t effective_timeout = (timeout == 0U) ? DEFAULT_TIMEOUT : timeout;
 
@@ -117,6 +119,67 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
             }
         } else{
             result = ERR_CRC;
+        }
+    }
+    return result;
+}
+
+uint32_t Master::send_frame(const Frame::Frame* frame) {
+    uint32_t result = S_SERIAL_ERR;
+    if (frame != NULL){
+        Raw_frame raw_frame;
+        uint32_t dump_result = dump_frame(&raw_frame, frame);
+        if (dump_result != S_SERIAL_ERR) {
+            int32_t write_res = serial_port.write(raw_frame.data, raw_frame.length);
+            result = write_res;
+        }
+    }
+    return result;
+}
+
+uint32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
+    uint32_t result = S_SERIAL_ERR;
+    if (str != NULL) {
+        const size_t payload_len = strlen(str);
+        const uint8_t* buf = reinterpret_cast<const uint8_t*>(str[0U]);
+        result = send_bytes(buf, cmd_byte);
+    }
+    return result;
+}
+
+uint32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
+    uint32_t result = S_SERIAL_ERR;
+    if (data != NULL) {
+        Frame::Frame frame;
+        const size_t payload_len = static_cast<size_t>(sizeof(data));
+        uint32_t build_frame_res = build_frame(
+            &frame,
+            start_byte,
+            this_address,
+            slave_address,
+            cmd_byte,
+            data,
+            payload_len
+        );
+        if (build_frame_res == 1U) {
+            uint32_t transmit_res = send_frame(&frame);
+            result = transmit_res;
+        }
+    }
+    return result;
+}
+
+Receive_result Master::transact(
+    Frame::Frame* const frame_out,
+    const uint8_t* const buf,
+    const uint8_t cmd_byte,
+    const uint32_t timeout
+) {
+    Receive_result result = ERR_PROCESS;
+    if ((frame_out != NULL) && (buf != NULL)) {
+        uint32_t send_res = send_bytes(buf, cmd_byte);
+        if (send_res == 1U) {
+            result = receive_packet(frame_out, timeout);
         }
     }
     return result;
