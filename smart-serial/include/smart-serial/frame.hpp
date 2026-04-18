@@ -60,7 +60,7 @@ namespace Smart_serial { namespace Frame {
      * @param payload_len Length of payload
      * @return uint32_t 1 if succesful, S_SERIAL_ERR if not. 
      */
-    uint32_t build_frame(Frame* const frame_out,
+    int32_t build_frame(Frame* const frame_out,
                          const uint8_t start_byte, 
                          const uint8_t from_addr,
                          const uint8_t to_addr,
@@ -75,7 +75,7 @@ namespace Smart_serial { namespace Frame {
      * @param frame The frame to write from. Must not be NULL.
      * @return uint32_t 1 if succesful, S_SERIAL_ERR if not
      */
-    uint32_t dump_frame(Raw_frame* const raw_frame_out, const Frame* const frame);
+    int32_t dump_frame(Raw_frame* const raw_frame_out, const Frame* const frame);
 
     /**
      * @brief Parse a raw frame to decomposed Frame
@@ -84,7 +84,7 @@ namespace Smart_serial { namespace Frame {
      * @param raw_frame The raw frame to parse. Must not be NULL.
      * @return uint32_t 1 if successful, S_SERIAL_ERR if not
      */
-    uint32_t parse_frame(Frame* const frame_out, const Raw_frame* const raw_frame_in);
+    int32_t parse_frame(Frame* const frame_out, const Raw_frame* const raw_frame_in);
     /**
      * @brief Parse a raw frame to decomposed Frame
      * 
@@ -94,7 +94,7 @@ namespace Smart_serial { namespace Frame {
      * @param len The length of the frame
      * @return uint32_t 1 if successful, S_SERIAL_ERR if not
      */
-    uint32_t parse_frame(Frame* const frame_out, const uint8_t* const buf, const uint16_t offset, const size_t len);
+    int32_t parse_frame(Frame* const frame_out, const uint8_t* const buf, const uint16_t offset, const size_t len);
 
 } // namespace Frame
 } // namespace Smart_serial

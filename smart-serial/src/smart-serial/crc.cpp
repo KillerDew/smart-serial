@@ -17,7 +17,7 @@
 
 using namespace Smart_serial;
 
-uint16_t CRC::compute_crc16(const uint8_t* const data, uint16_t length) {
+int16_t CRC::compute_crc16(const uint8_t* const data, uint16_t length) {
     uint16_t result = 0;
     if (data != NULL){
         // Constants for CRC calculation
@@ -52,7 +52,7 @@ uint16_t CRC::compute_crc16(const uint8_t* const data, uint16_t length) {
     return result;
 }
 
-uint16_t CRC::compute_crc16(const Frame::Raw_frame *const raw_frame) {
+int16_t CRC::compute_crc16(const Frame::Raw_frame *const raw_frame) {
     uint16_t result = S_SERIAL_ERR_2_BYTE;
     if (raw_frame != NULL) {
         result = compute_crc16(raw_frame->data, raw_frame->length);
@@ -60,8 +60,8 @@ uint16_t CRC::compute_crc16(const Frame::Raw_frame *const raw_frame) {
     return result;
 }
 
-uint16_t CRC::extract_crc16(const uint8_t* const data, uint16_t offset) {
-    uint16_t result = 0;
+int16_t CRC::extract_crc16(const uint8_t* const data, uint16_t offset) {
+    int32_t result = 0;
     if (data != NULL){
         // Extract little endian from data
         const uint8_t low_byte = data[offset];
@@ -74,12 +74,12 @@ uint16_t CRC::extract_crc16(const uint8_t* const data, uint16_t offset) {
     return result;
 }
 
-uint32_t CRC::append_crc16(uint8_t* const  buf,
+int32_t CRC::append_crc16(uint8_t* const  buf,
                              const size_t    cap,
                              const uint16_t  offset,
                              const uint16_t  crc)
 {
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     // Check if buffer is null and that there is space for CRC
     if ((buf != NULL) &&
         ((static_cast<size_t>(offset) + 2U) <= cap))
@@ -99,11 +99,11 @@ uint32_t CRC::append_crc16(uint8_t* const  buf,
     return result;
 }
 
-uint32_t CRC::append_crc16(Frame::Raw_frame *const raw_frame,
+int32_t CRC::append_crc16(Frame::Raw_frame *const raw_frame,
                            const std::size_t cap,
                            const uint16_t offset,
                            const uint16_t crc) {
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     if (raw_frame != NULL){
         result = append_crc16(raw_frame->data, cap, offset, crc);
     }
