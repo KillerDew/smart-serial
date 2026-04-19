@@ -33,9 +33,11 @@ Master::Master(I_port& port,
 
 int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
     int32_t result = S_SERIAL_ERR;
+    // Use default timeout if otherwise specified
     const uint32_t effective_timeout = (timeout == 0U) ? DEFAULT_TIMEOUT : timeout;
 
     if (raw_frame_out != NULL) {
+        // Initialise flags and values
         raw_frame_out->length = 0U;
         const uint32_t start_time = clock.millis();
         bool stage1_done = false;
@@ -52,6 +54,7 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
                 continue;
             }
             else if (static_cast<uint8_t>(read_byte) == start_byte) {
+                // A packet has begun
                 raw_frame_out->data[raw_frame_out->length++] = start_byte;
                 stage1_done = true;
                 break;
@@ -65,16 +68,18 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
               ((clock.millis() - start_time) < effective_timeout)) {
             const int32_t read_byte = serial_port.read_byte();
             if (read_byte < 0) {
+                // No byte, continue
                 clock.delay(1U);
                 continue;
             }
+            // standard header byte
             raw_frame_out->data[raw_frame_out->length++] = static_cast<uint8_t>(read_byte);
 
             if (raw_frame_out->length == HEADER_SIZE) {
                 // Last header byte is payload length — extend expected_total accordingly
                 payload_len = raw_frame_out->data[HEADER_SIZE - 1U];
                 expected_total += static_cast<size_t>(payload_len);
-                stage2_done = true;
+                stage2_done = true; // stage 2 done
                 break;
             }
         }
@@ -85,13 +90,14 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
               (raw_frame_out->length < S_SERIAL_MAX_FRAME_BYTES)) {
             const int32_t read_byte = serial_port.read_byte();
             if (read_byte < 0) {
+                // No byte, continue
                 clock.delay(1U);
                 continue;
             }
             raw_frame_out->data[raw_frame_out->length++] = static_cast<uint8_t>(read_byte);
 
             if (raw_frame_out->length >= expected_total) {
-                result = 1; // frame complete
+                result = 1; // raw frame complete
                 break;
             }
         }
@@ -103,36 +109,47 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
                                       const uint32_t timeout,
                                       bool check_crc) {
     Receive_result result = ERR_PROCESS;
-    Raw_frame raw_frame;
-    const int32_t read_raw_result = read_raw_frame(&raw_frame, timeout);
-    if (read_raw_result == 1) {
-        const uint32_t crc_offset = static_cast<uint32_t>(raw_frame.length) - CRC_LENGTH - 1U;
-        const uint16_t read_crc = extract_crc16(raw_frame.data, crc_offset);
-        const uint16_t expected_crc = compute_crc16(raw_frame.data, crc_offset);
-        if (read_crc == expected_crc) {
-            const int32_t parse_result = parse_frame(frame_out, &raw_frame);
-            if (parse_result == 1) {
-                if (frame_out->header.command == NACK) {
-                    result = ERR_NACK;
-                } else {
-                    result = SUCCESS;
+    if (frame_out != NULL) {
+        Raw_frame raw_frame;
+        const int32_t read_raw_result = read_raw_frame(&raw_frame, timeout);
+        if (read_raw_result == 1) {
+            // Find crc index (last 2 bytes)
+            const uint32_t crc_offset = static_cast<uint32_t>(raw_frame.length) - CRC_LENGTH - 1U;
+            // read crc from buffer and compute expected
+            const uint16_t read_crc = extract_crc16(raw_frame.data, crc_offset);
+            const uint16_t expected_crc = compute_crc16(raw_frame.data, crc_offset);
+            if (read_crc == expected_crc) {
+                raw_frame.length = crc_offset;
+                // parse the raw frame into decomposed frame
+                const int32_t parse_result = parse_frame(frame_out, &raw_frame);
+                if (parse_result == 1) {
+                    if (frame_out->header.command == NACK) {
+                        // Slave has sent a NACK
+                        result = ERR_NACK;
+                    } else {
+                        result = SUCCESS;
+                    }
                 }
+            } else{
+                // CRC check has failed
+                result = ERR_CRC;
             }
-        } else{
-            result = ERR_CRC;
         }
     }
     return result;
 }
 
-int32_t Master::send_frame(const Frame::Frame* frame) {
+int32_t Master::send_frame(const Frame::Frame* const frame) {
     uint32_t result = S_SERIAL_ERR;
     if (frame != NULL){
         Raw_frame raw_frame;
+        // Dump frame into raw frame (data, len)
         int32_t dump_result = dump_frame(&raw_frame, frame);
         if (dump_result != S_SERIAL_ERR) {
+            // Compute crc for data
             int16_t crc = compute_crc16(&raw_frame);
             if (crc != S_SERIAL_ERR_2_BYTE) {
+                // Append crc to data and write to tx buffer
                 int32_t append_res = append_crc16(&raw_frame, S_SERIAL_MAX_FRAME_BYTES, raw_frame.length, crc);
                 if (append_res == 1) {          
                     int32_t write_res = serial_port.write(raw_frame.data, raw_frame.length);
@@ -145,6 +162,7 @@ int32_t Master::send_frame(const Frame::Frame* frame) {
 }
 
 int32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
+    // Converts string to uint8_t buffer and sends that
     int32_t result = S_SERIAL_ERR;
     if (str != NULL) {
         const size_t payload_len = strlen(str);
@@ -155,6 +173,7 @@ int32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
 }
 
 int32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
+    // Builds frame from payload buffer and sends
     int32_t result = S_SERIAL_ERR;
     if (data != NULL) {
         Frame::Frame frame;
@@ -182,6 +201,7 @@ Receive_result Master::transact(
     const uint8_t cmd_byte,
     const uint32_t timeout
 ) {
+    // Send bytes, read response
     Receive_result result = ERR_PROCESS;
     if ((frame_out != NULL) && (buf != NULL)) {
         int32_t send_res = send_bytes(buf, cmd_byte);
@@ -197,6 +217,7 @@ Receive_result Master::transact(
     const Frame::Frame* const frame_in,
     const uint32_t timeout
 ) {
+    // sends bytes (from payload of frame) and reads resoonse
     Receive_result result = ERR_PROCESS;
     if ((frame_out != NULL) && (frame_in != NULL)) {
         result = transact(
@@ -214,6 +235,7 @@ Receive_result Master::transact(
     const uint8_t cmd_byte,
     const uint32_t timeout
 ) {
+    // Delegates to overload with a converted string to uint8_t buffer
     const Receive_result result = transact(
         frame_out,
         reinterpret_cast<const uint8_t*>(str[0]),
@@ -226,6 +248,7 @@ Receive_result Master::transact(
 Receive_result Master::handshake(const uint32_t attempts, const uint32_t timeout_per) {
     Receive_result result = ERR_PROCESS;
     Frame::Frame handshake_frame;
+    // Default ACK frame with no payload and ACK cmd
     int32_t build_res = build_frame(
         &handshake_frame,
         start_byte,
@@ -236,19 +259,18 @@ Receive_result Master::handshake(const uint32_t attempts, const uint32_t timeout
         0U
     );
     if (build_res == 1) {
+        // Attempts to transact the ACK frame multiple times
         for (uint32_t attempt_num=0U; attempt_num < attempts; ++attempt_num) {
-            int32_t send_res = send_frame(&handshake_frame);
-            if (send_res == 1) {
-                Frame::Frame ack_frame;
-                result = receive_packet(&ack_frame, timeout_per);
-                if (result == SUCCESS && ack_frame.header.command == ACK) {
-                    break;
-                } else if (result == SUCCESS) {
-                    result = ERR_UNEXPECTED_CMD;
-                }
-            } else {
-                result = ERR_PROCESS;
+            Frame::Frame ack_frame;
+            result = transact(&ack_frame, &handshake_frame, timeout_per);
+            if (result == SUCCESS && ack_frame.header.command == ACK) {
+                break;
+            } else if (result == SUCCESS) {
+                result = ERR_UNEXPECTED_CMD;
             }
+        }
+        if (result == ERR_PROCESS) {
+            result = ERR_TIMEOUT;
         }
     }
     return result;
