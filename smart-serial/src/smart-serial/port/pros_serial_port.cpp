@@ -11,6 +11,7 @@
  */
 
 #include "smart-serial/port/pros_serial_port.hpp"
+#include "pros/device.hpp"
 #include "smart-serial/error.h"
 #include "pros/serial.hpp"
 #include "pros/error.h"
@@ -18,8 +19,9 @@
 
 using namespace Smart_serial;
 
-Pros_serial_port::Pros_serial_port(const uint32_t smart_port_num, const uint32_t baud_rate=115200)
-    : serial_port(static_cast<int32_t>(smart_port_num), static_cast<int32_t>(baud_rate))
+Pros_serial_port::Pros_serial_port(const uint32_t smart_port_num, const uint32_t baud_rate)
+    : pros::Device(smart_port_num),
+    serial_port(static_cast<int32_t>(smart_port_num), static_cast<int32_t>(baud_rate))
 { 
     // Port is now open
 }

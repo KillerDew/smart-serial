@@ -12,6 +12,7 @@
 #ifndef SMART_SERIAL_PROS_SERIAL_PORT_HPP
 #define SMART_SERIAL_PROS_SERIAL_PORT_HPP
 
+#include "pros/device.hpp"
 #include "smart-serial/port/iport.hpp"
 #include "pros/serial.hpp"
 #include <cstdint>
@@ -21,7 +22,7 @@
 
 namespace Smart_serial {
     
-    class Pros_serial_port : public I_port {
+    class Pros_serial_port : public I_port, public pros::Device {
         public:
             /**
              * @brief Construct and open a PROS serial port.
@@ -29,7 +30,7 @@ namespace Smart_serial {
              * @param smart_port_num V5 Port Number (1-21)
              * @param baud_rate Buad rate bits/second. Default is 115200.
              */
-            explicit Pros_serial_port(const uint32_t smart_port_num, const uint32_t baud_rate);
+            explicit Pros_serial_port(const uint32_t smart_port_num, const uint32_t baud_rate=115200);
 
             /** @brief destructor - trivial as PROS cleans up itself */
             ~Pros_serial_port();
@@ -67,8 +68,8 @@ namespace Smart_serial {
             pros::Serial serial_port;
 
             /** AV Rule 88 */
-            Pros_serial_port(const Pros_serial_port&);
-            Pros_serial_port& operator=(const Pros_serial_port&);
+            Pros_serial_port(const Pros_serial_port&) = delete;
+            Pros_serial_port& operator=(const Pros_serial_port&) = delete;
 
     };
 }
