@@ -19,7 +19,7 @@
 
 using namespace Smart_serial;
 
-uint32_t Frame::build_frame(Frame* const frame_out,
+int32_t Frame::build_frame(Frame* const frame_out,
                             const uint8_t start_byte,
                             const uint8_t from_addr,
                             const uint8_t to_addr,
@@ -44,8 +44,8 @@ uint32_t Frame::build_frame(Frame* const frame_out,
     return result;
 }
 
-uint32_t Frame::dump_frame(Raw_frame* const raw_frame_out, const Frame *const frame) {
-    uint32_t result = S_SERIAL_ERR;
+int32_t Frame::dump_frame(Raw_frame* const raw_frame_out, const Frame *const frame) {
+    int32_t result = S_SERIAL_ERR;
     if ((raw_frame_out !=  NULL) &&
         (frame != NULL)
     ) {
@@ -67,8 +67,8 @@ uint32_t Frame::dump_frame(Raw_frame* const raw_frame_out, const Frame *const fr
     return result;
 }
 
-uint32_t Frame::parse_frame(Frame* const frame_out, const Raw_frame* raw_frame_in) {
-    uint32_t result = S_SERIAL_ERR;
+int32_t Frame::parse_frame(Frame* const frame_out, const Raw_frame* raw_frame_in) {
+    int32_t result = S_SERIAL_ERR;
 
     // Check for null references and if data is long enough to populate frame
     if ((frame_out != NULL) && (raw_frame_in != NULL)) {
@@ -80,12 +80,12 @@ uint32_t Frame::parse_frame(Frame* const frame_out, const Raw_frame* raw_frame_i
     return result;
 }
 
-uint32_t Frame::parse_frame(Frame *const frame_out,
+int32_t Frame::parse_frame(Frame *const frame_out,
                             const uint8_t *const buf,
                             const uint16_t offset,
                             const size_t len) {
 
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     // Check for null references and if data is long enough to populate frame
     if ((frame_out != NULL) && (len >= HEADER_SIZE)) {
         

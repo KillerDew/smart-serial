@@ -26,7 +26,9 @@ namespace Smart_serial { namespace CRC {
      * @param length length of data buffer
      * @return uint16_t the 16 bit CRC checksum
      */
-    uint16_t compute_crc16(const uint8_t* const data, uint16_t length);
+    int16_t compute_crc16(const uint8_t* const data, uint16_t length);
+
+    int16_t compute_crc16(const Frame::Raw_frame* const raw_frame);
 
     uint16_t compute_crc16(const Frame::Raw_frame* const raw_frame);
 
@@ -37,7 +39,7 @@ namespace Smart_serial { namespace CRC {
      * @param offset index at which the CRC is located in the data buffer
      * @return uint16_t the extracted 16 bit CRC
      */
-    uint16_t extract_crc16(const uint8_t* const data, uint16_t offset);
+    int16_t extract_crc16(const uint8_t* const data, uint16_t offset);
 
     /**
      * @brief appends a CRC to the buffer with low byte first
@@ -48,9 +50,9 @@ namespace Smart_serial { namespace CRC {
      * @param crc 16 bit CRC to append
      * @return uint16_t 1 if succesful, S_SERIAL_ERR if error.
      */
-    uint32_t append_crc16(uint8_t* const buf, const std::size_t cap, const uint16_t offset, const uint16_t crc);
+    int32_t append_crc16(uint8_t* const buf, const std::size_t cap, const uint16_t offset, const uint16_t crc);
 
-    uint32_t append_crc16(Frame::Raw_frame* const frame, const std::size_t cap, const uint16_t offset, const uint16_t crc);
+    int32_t append_crc16(Frame::Raw_frame* const frame, const std::size_t cap, const uint16_t offset, const uint16_t crc);
 
 }} // namespace CRC, Smart_serial
 
