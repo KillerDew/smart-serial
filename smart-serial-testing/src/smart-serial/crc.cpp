@@ -52,6 +52,14 @@ uint16_t CRC::compute_crc16(const uint8_t* const data, uint16_t length) {
     return result;
 }
 
+uint16_t CRC::compute_crc16(const Frame::Raw_frame *const raw_frame) {
+    uint16_t result = S_SERIAL_ERR_2_BYTE;
+    if (raw_frame != NULL) {
+        result = compute_crc16(raw_frame->data, raw_frame->length);
+    }
+    return result;
+}
+
 uint16_t CRC::extract_crc16(const uint8_t* const data, uint16_t offset) {
     uint16_t result = 0;
     if (data != NULL){

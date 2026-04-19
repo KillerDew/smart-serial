@@ -33,6 +33,10 @@
 #define S_SERIAL_ERR_F (-INFINITY)
 
 /// @brief
+/// Return this on any errors to do with timeouts
+#define S_SERIAL_ERR_TIMEOUT (-2)
+
+/// @brief
 /// Return This on Success (1)
 #define S_SERIAL_SUCCESS (1)
 
