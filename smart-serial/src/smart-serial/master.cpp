@@ -101,6 +101,10 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
                 break;
             }
         }
+        if (result != 1) {
+            // No success due to timeout
+            result = S_SERIAL_ERR_TIMEOUT;
+        }
     }
     return result;
 }
@@ -134,6 +138,9 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
                 // CRC check has failed
                 result = ERR_CRC;
             }
+        } else if (read_raw_result == S_SERIAL_ERR_TIMEOUT) {
+            // Process failed due to timeout
+            result = ERR_TIMEOUT;
         }
     }
     return result;
