@@ -46,6 +46,7 @@ namespace Smart_serial {
             Master(I_port& port,
                    Clock::I_clock& clock_,
                    const uint8_t slave_addr,
+                   const uint8_t this_addr,
                    const uint32_t default_timeout);
 
             /** @brief Trivial constructor, no dynamic mem allocation */
@@ -79,17 +80,6 @@ namespace Smart_serial {
              */
             int32_t send_bytes(const uint8_t* const data, const uint8_t cmd_byte);
 
-            /**
-             * @brief 
-             * 
-             * @param packet_out The packet response from slave
-             * @param frame_in The frame to send
-             * @param timeout the timeout to use. Defaults to 5 seconds
-             * @return Receive_result result of the transaction
-             */
-            Receive_result transact(Frame::Frame* const frame_out,
-                              const Frame::Frame* const frame_in,
-                              const uint32_t timeout=0U);
             Receive_result transact(Frame::Frame* const frame_out,
                               const uint8_t* const buf,
                               const uint8_t cmd_byte,
@@ -114,6 +104,13 @@ namespace Smart_serial {
              * @brief Set the master address value
              * @param byte byte to set to */
             void set_master_address(const uint8_t byte) { this_address = byte; }
+            
+            /**
+             * @brief Set the slave address value
+             * @param byte value to set to
+             */
+            void set_slave_address(const uint8_t byte) { slave_address = byte; }
+
         private:
             I_port& serial_port;
             uint8_t slave_address;
@@ -142,6 +139,18 @@ namespace Smart_serial {
              * @return uint32_t 1 if successful, S_SERIAL_ERR if not
              */
             int32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, const uint32_t timeout=0U);
+
+            /**
+             * @brief 
+             * 
+             * @param packet_out The packet response from slave
+             * @param frame_in The frame to send
+             * @param timeout the timeout to use. Defaults to 5 seconds
+             * @return Receive_result result of the transaction
+             */
+            Receive_result transact(Frame::Frame* const frame_out,
+                              const Frame::Frame* const frame_in,
+                              const uint32_t timeout=0U);
 
             Master(Master&) = delete;
             Master operator=(Master&) = delete;
