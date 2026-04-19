@@ -25,6 +25,7 @@ namespace Smart_serial {
         ERR_NACK = 0,
         ERR_CRC = -1,
         ERR_TIMEOUT = -2,
+        ERR_UNEXPECTED_CMD = -3,
         ERR_PROCESS = S_SERIAL_ERR
     };
 
@@ -104,7 +105,7 @@ namespace Smart_serial {
              * @param timeout The timeout to use. Defaults to 5 seconds
              * @return Receive_result The result of the transaction
              */
-            Receive_result handshake(const uint32_t attempts, const uint32_t timeout_per=0U);
+            Receive_result handshake(const uint32_t attempts=3U, const uint32_t timeout_per=0U);
             
             /** @brief set start byte for transmissions and receives
                 @param byte byte to use */

@@ -191,3 +191,65 @@ Receive_result Master::transact(
     }
     return result;
 }
+
+Receive_result Master::transact(
+    Frame::Frame* const frame_out,
+    const Frame::Frame* const frame_in,
+    const uint32_t timeout
+) {
+    Receive_result result = ERR_PROCESS;
+    if ((frame_out != NULL) && (frame_in != NULL)) {
+        result = transact(
+            frame_out,
+            frame_in->payload,
+            frame_in->header.command,
+            timeout
+        );
+    }
+    return result;
+}
+Receive_result Master::transact(
+    Frame::Frame* const frame_out,
+    const char* const str,
+    const uint8_t cmd_byte,
+    const uint32_t timeout
+) {
+    const Receive_result result = transact(
+        frame_out,
+        reinterpret_cast<const uint8_t*>(str[0]),
+        cmd_byte,
+        timeout
+    );
+    return result;
+}
+
+Receive_result Master::handshake(const uint32_t attempts, const uint32_t timeout_per) {
+    Receive_result result = ERR_PROCESS;
+    Frame::Frame handshake_frame;
+    int32_t build_res = build_frame(
+        &handshake_frame,
+        start_byte,
+        this_address,
+        slave_address,
+        ACK,
+        nullptr,
+        0U
+    );
+    if (build_res == 1) {
+        for (uint32_t attempt_num=0U; attempt_num < attempts; ++attempt_num) {
+            int32_t send_res = send_frame(&handshake_frame);
+            if (send_res == 1) {
+                Frame::Frame ack_frame;
+                result = receive_packet(&ack_frame, timeout_per);
+                if (result == SUCCESS && ack_frame.header.command == ACK) {
+                    break;
+                } else if (result == SUCCESS) {
+                    result = ERR_UNEXPECTED_CMD;
+                }
+            } else {
+                result = ERR_PROCESS;
+            }
+        }
+    }
+    return result;
+}
