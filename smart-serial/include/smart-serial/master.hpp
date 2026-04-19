@@ -15,24 +15,10 @@
 #include "clock/IClock.hpp"
 #include "frame.hpp"
 #include "port/iport.hpp"
-#include "error.h"
+#include "types.h"
 #include <cstdint>
 
 namespace Smart_serial {
-
-    enum Receive_result {
-        SUCCESS = 1,
-        ERR_NACK = 0,
-        ERR_CRC = -1,
-        ERR_TIMEOUT = -2,
-        ERR_UNEXPECTED_CMD = -3,
-        ERR_PROCESS = S_SERIAL_ERR
-    };
-
-    enum Default_cmds {
-        ACK = 0x06,
-        NACK = 0x15
-    };
 
     class Master {
         public:
