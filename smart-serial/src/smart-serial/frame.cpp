@@ -14,6 +14,7 @@
 #include "smart-serial/frame.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 
 using namespace Smart_serial;
@@ -28,10 +29,7 @@ uint32_t Frame::build_frame(Frame* const frame_out,
     
     uint32_t result = S_SERIAL_ERR;
     // Check if payload is not too large
-    if ((frame_out != NULL) &&
-        (payload != NULL) &&
-        (payload_len <= S_SERIAL_MAX_PAYLOAD_BYTES)
-    ) {
+    if ((frame_out != NULL) && (payload_len <= S_SERIAL_MAX_PAYLOAD_BYTES)) {
         // Assign header values
         frame_out->header.start_byte = start_byte;
         frame_out->header.from_address = from_addr;
@@ -89,9 +87,7 @@ uint32_t Frame::parse_frame(Frame *const frame_out,
 
     uint32_t result = S_SERIAL_ERR;
     // Check for null references and if data is long enough to populate frame
-    if ((frame_out != NULL) &&
-        (buf != NULL) &&
-        (len >= HEADER_SIZE)) {
+    if ((frame_out != NULL) && (len >= HEADER_SIZE)) {
         
         const uint8_t payload_len = buf[offset + 4U];
 
