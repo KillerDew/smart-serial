@@ -30,7 +30,7 @@ namespace Smart_serial { namespace CRC {
 
     int16_t compute_crc16(const Frame::Raw_frame* const raw_frame);
 
-    uint16_t compute_crc16(const Frame::Raw_frame* const raw_frame);
+    int16_t compute_crc16(const Frame::Raw_frame* const raw_frame);
 
     /**
      * @brief Extracts the 16 bit CRC
