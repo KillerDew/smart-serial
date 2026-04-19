@@ -22,6 +22,7 @@
 using namespace Smart_serial;
 using namespace Smart_serial::Clock;
 using namespace Smart_serial::Frame;
+using namespace Smart_serial::CRC;
 
 // Initialise constants and references
 Master::Master(I_port& port,
@@ -31,7 +32,7 @@ Master::Master(I_port& port,
                : serial_port(port), clock(clock_), slave_address(slave_addr), DEFAULT_TIMEOUT(default_timeout) {}
 
 int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     const uint32_t effective_timeout = (timeout == 0U) ? DEFAULT_TIMEOUT : timeout;
 
     if (raw_frame_out != NULL) {
@@ -41,7 +42,7 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
         bool stage2_done = false;
         uint8_t payload_len = 0U;
         // Minimum frame size — updated in stage 2 once payload length is known
-        size_t expected_total = HEADER_SIZE + CRC::CRC_LENGTH;
+        size_t expected_total = HEADER_SIZE + CRC_LENGTH;
 
         // Stage 1 — scan incoming bytes until start byte is found
         while ((clock.millis() - start_time) < effective_timeout) {
@@ -90,7 +91,7 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
             raw_frame_out->data[raw_frame_out->length++] = static_cast<uint8_t>(read_byte);
 
             if (raw_frame_out->length >= expected_total) {
-                result = 1U; // frame complete
+                result = 1; // frame complete
                 break;
             }
         }
@@ -104,13 +105,13 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
     Receive_result result = ERR_PROCESS;
     Raw_frame raw_frame;
     const int32_t read_raw_result = read_raw_frame(&raw_frame, timeout);
-    if (read_raw_result == 1U) {
-        const uint32_t crc_offset = raw_frame.length - CRC::CRC_LENGTH - 1U;
-        const uint16_t read_crc = CRC::extract_crc16(raw_frame.data, crc_offset);
-        const uint16_t expected_crc = CRC::compute_crc16(raw_frame.data, crc_offset);
+    if (read_raw_result == 1) {
+        const uint32_t crc_offset = static_cast<uint32_t>(raw_frame.length) - CRC_LENGTH - 1U;
+        const uint16_t read_crc = extract_crc16(raw_frame.data, crc_offset);
+        const uint16_t expected_crc = compute_crc16(raw_frame.data, crc_offset);
         if (read_crc == expected_crc) {
-            const uint32_t parse_result = parse_frame(frame_out, &raw_frame);
-            if (parse_result == 1U) {
+            const int32_t parse_result = parse_frame(frame_out, &raw_frame);
+            if (parse_result == 1) {
                 if (frame_out->header.command == NACK) {
                     result = ERR_NACK;
                 } else {
@@ -130,9 +131,9 @@ int32_t Master::send_frame(const Frame::Frame* frame) {
         Raw_frame raw_frame;
         int32_t dump_result = dump_frame(&raw_frame, frame);
         if (dump_result != S_SERIAL_ERR) {
-            int16_t crc = CRC::compute_crc16(&raw_frame);
+            int16_t crc = compute_crc16(&raw_frame);
             if (crc != S_SERIAL_ERR_2_BYTE) {
-                uint32_t append_res = CRC::append_crc16(&raw_frame, S_SERIAL_MAX_FRAME_BYTES, raw_frame.length, crc);
+                int32_t append_res = append_crc16(&raw_frame, S_SERIAL_MAX_FRAME_BYTES, raw_frame.length, crc);
                 if (append_res == 1) {          
                     int32_t write_res = serial_port.write(raw_frame.data, raw_frame.length);
                     result = write_res;
@@ -144,7 +145,7 @@ int32_t Master::send_frame(const Frame::Frame* frame) {
 }
 
 int32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     if (str != NULL) {
         const size_t payload_len = strlen(str);
         const uint8_t* buf = reinterpret_cast<const uint8_t*>(str[0U]);
@@ -154,7 +155,7 @@ int32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
 }
 
 int32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     if (data != NULL) {
         Frame::Frame frame;
         const size_t payload_len = static_cast<size_t>(sizeof(data));
@@ -167,8 +168,8 @@ int32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
             data,
             payload_len
         );
-        if (build_frame_res == 1U) {
-            uint32_t transmit_res = send_frame(&frame);
+        if (build_frame_res == 1) {
+            int32_t transmit_res = send_frame(&frame);
             result = transmit_res;
         }
     }
@@ -183,8 +184,8 @@ Receive_result Master::transact(
 ) {
     Receive_result result = ERR_PROCESS;
     if ((frame_out != NULL) && (buf != NULL)) {
-        uint32_t send_res = send_bytes(buf, cmd_byte);
-        if (send_res == 1U) {
+        int32_t send_res = send_bytes(buf, cmd_byte);
+        if (send_res == 1) {
             result = receive_packet(frame_out, timeout);
         }
     }
