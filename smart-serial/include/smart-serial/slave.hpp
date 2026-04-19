@@ -102,7 +102,7 @@ namespace Smart_serial {
              * @param timeout timeout to use (0 = device default)
              * @return int32_t 1 if successful, corresponding error code if not
              */
-            int32_t read_raw_frame(Frame::Raw_frame* const frame_out, uint32_t timeout=0U);
+            int32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, uint32_t timeout=0U);
 
             /**
              * @brief validate the crc of a raw frame
