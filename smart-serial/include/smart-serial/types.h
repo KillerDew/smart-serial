@@ -25,6 +25,7 @@ enum Receive_result {
         ERR_CRC = -1,
         ERR_TIMEOUT = -2,
         ERR_UNEXPECTED_CMD = -3,
+        ERR_WRONG_ADDRESS = -4,
         ERR_PROCESS = S_SERIAL_ERR
 };
 
