@@ -128,10 +128,16 @@ uint32_t Master::send_frame(const Frame::Frame* frame) {
     uint32_t result = S_SERIAL_ERR;
     if (frame != NULL){
         Raw_frame raw_frame;
-        uint32_t dump_result = dump_frame(&raw_frame, frame);
+        int32_t dump_result = dump_frame(&raw_frame, frame);
         if (dump_result != S_SERIAL_ERR) {
-            int32_t write_res = serial_port.write(raw_frame.data, raw_frame.length);
-            result = write_res;
+            int16_t crc = CRC::compute_crc16(&raw_frame);
+            if (crc != S_SERIAL_ERR_2_BYTE) {
+                uint32_t append_res = CRC::append_crc16(&raw_frame, S_SERIAL_MAX_FRAME_BYTES, raw_frame.length, crc);
+                if (append_res == 1) {          
+                    int32_t write_res = serial_port.write(raw_frame.data, raw_frame.length);
+                    result = write_res;
+                }
+            }
         }
     }
     return result;
