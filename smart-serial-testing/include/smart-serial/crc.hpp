@@ -12,7 +12,6 @@
 #ifndef SMART_SERIAL_CRC_HPP
 #define SMART_SERIAL_CRC_HPP
 
-#include "crc.hpp"
 #include "smart-serial/frame.hpp"
 #include <cstdint>
 

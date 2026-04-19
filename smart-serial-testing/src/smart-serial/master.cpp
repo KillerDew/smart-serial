@@ -10,13 +10,14 @@
  */
 
 #include "smart-serial/master.hpp"
-#include "crc.hpp"
+#include "smart-serial/crc.hpp"
 #include "error.h"
-#include "frame.hpp"
+#include "smart-serial/frame.hpp"
 #include "smart-serial/clock/IClock.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 
 using namespace Smart_serial;
@@ -61,33 +62,33 @@ int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t ti
             }
             // non-start byte — discard and keep scanning
         }
-
+        
         // Stage 2 — read remaining header bytes until payload length is known
         while (stage1_done &&
               (raw_frame_out->length < S_SERIAL_MAX_FRAME_BYTES) &&
               ((clock.millis() - start_time) < effective_timeout)) {
-            const int32_t read_byte = serial_port.read_byte();
-            if (read_byte < 0) {
-                // No byte, continue
-                clock.delay(1U);
-                continue;
-            }
-            // standard header byte
-            raw_frame_out->data[raw_frame_out->length++] = static_cast<uint8_t>(read_byte);
-
-            if (raw_frame_out->length == HEADER_SIZE) {
-                // Last header byte is payload length — extend expected_total accordingly
-                payload_len = raw_frame_out->data[HEADER_SIZE - 1U];
-                expected_total += static_cast<size_t>(payload_len);
-                stage2_done = true; // stage 2 done
-                break;
-            }
+                  const int32_t read_byte = serial_port.read_byte();
+                  if (read_byte < 0) {
+                      // No byte, continue
+                      clock.delay(1U);
+                      continue;
+                    }
+                    // standard header byte
+                    raw_frame_out->data[raw_frame_out->length++] = static_cast<uint8_t>(read_byte);
+                    
+                    if (raw_frame_out->length == HEADER_SIZE) {
+                        // Last header byte is payload length — extend expected_total accordingly
+                        payload_len = raw_frame_out->data[HEADER_SIZE - 1U];
+                        expected_total += static_cast<size_t>(payload_len);
+                        stage2_done = true; // stage 2 done
+                        break;
+                    }
         }
-
+                
         // Stage 3 — read payload and CRC bytes until frame is complete
         while (stage2_done &&
               ((clock.millis() - start_time) < effective_timeout) &&
-              (raw_frame_out->length < S_SERIAL_MAX_FRAME_BYTES)) {
+              (raw_frame_out->length < expected_total)) {
             const int32_t read_byte = serial_port.read_byte();
             if (read_byte < 0) {
                 // No byte, continue
@@ -118,12 +119,11 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
         const int32_t read_raw_result = read_raw_frame(&raw_frame, timeout);
         if (read_raw_result == 1) {
             // Find crc index (last 2 bytes)
-            const uint32_t crc_offset = static_cast<uint32_t>(raw_frame.length) - CRC_LENGTH - 1U;
+            const uint32_t crc_offset = static_cast<uint32_t>(raw_frame.length) - CRC_LENGTH;
             // read crc from buffer and compute expected
             const uint16_t read_crc = extract_crc16(raw_frame.data, crc_offset);
             const uint16_t expected_crc = compute_crc16(raw_frame.data, crc_offset);
             if (read_crc == expected_crc) {
-                raw_frame.length = crc_offset;
                 // parse the raw frame into decomposed frame
                 const int32_t parse_result = parse_frame(frame_out, &raw_frame);
                 if (parse_result == 1) {
@@ -147,7 +147,7 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
 }
 
 int32_t Master::send_frame(const Frame::Frame* const frame) {
-    uint32_t result = S_SERIAL_ERR;
+    int32_t result = S_SERIAL_ERR;
     if (frame != NULL){
         Raw_frame raw_frame;
         // Dump frame into raw frame (data, len)
@@ -158,9 +158,9 @@ int32_t Master::send_frame(const Frame::Frame* const frame) {
             if (crc != S_SERIAL_ERR_2_BYTE) {
                 // Append crc to data and write to tx buffer
                 int32_t append_res = append_crc16(&raw_frame, S_SERIAL_MAX_FRAME_BYTES, raw_frame.length, crc);
-                if (append_res == 1) {          
+                if (append_res == 1) {
                     int32_t write_res = serial_port.write(raw_frame.data, raw_frame.length);
-                    result = write_res;
+                    result = (write_res < 0) ? write_res : 1;
                 }
             }
         }
@@ -182,22 +182,20 @@ int32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
 int32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
     // Builds frame from payload buffer and sends
     int32_t result = S_SERIAL_ERR;
-    if (data != NULL) {
-        Frame::Frame frame;
-        const size_t payload_len = static_cast<size_t>(sizeof(data));
-        uint32_t build_frame_res = build_frame(
-            &frame,
-            start_byte,
-            this_address,
-            slave_address,
-            cmd_byte,
-            data,
-            payload_len
-        );
-        if (build_frame_res == 1) {
-            int32_t transmit_res = send_frame(&frame);
-            result = transmit_res;
-        }
+    Frame::Frame frame;
+    const size_t payload_len = static_cast<size_t>(sizeof(data));
+    uint32_t build_frame_res = build_frame(
+        &frame,
+        start_byte,
+        this_address,
+        slave_address,
+        cmd_byte,
+        data,
+        payload_len
+    );
+    if (build_frame_res == 1) {
+        int32_t transmit_res = send_frame(&frame);
+        result = transmit_res;
     }
     return result;
 }
@@ -210,7 +208,7 @@ Receive_result Master::transact(
 ) {
     // Send bytes, read response
     Receive_result result = ERR_PROCESS;
-    if ((frame_out != NULL) && (buf != NULL)) {
+    if ((frame_out != NULL)) {
         int32_t send_res = send_bytes(buf, cmd_byte);
         if (send_res == 1) {
             result = receive_packet(frame_out, timeout);
@@ -224,15 +222,13 @@ Receive_result Master::transact(
     const Frame::Frame* const frame_in,
     const uint32_t timeout
 ) {
-    // sends bytes (from payload of frame) and reads resoonse
+    // sends frame and reads resoonse
     Receive_result result = ERR_PROCESS;
     if ((frame_out != NULL) && (frame_in != NULL)) {
-        result = transact(
-            frame_out,
-            frame_in->payload,
-            frame_in->header.command,
-            timeout
-        );
+        int32_t send_res = send_frame(frame_in);
+        if (send_res == 1) {
+            result = receive_packet(frame_out, timeout);
+        };
     }
     return result;
 }
@@ -262,7 +258,7 @@ Receive_result Master::handshake(const uint32_t attempts, const uint32_t timeout
         this_address,
         slave_address,
         ACK,
-        nullptr,
+        {},
         0U
     );
     if (build_res == 1) {
@@ -270,14 +266,11 @@ Receive_result Master::handshake(const uint32_t attempts, const uint32_t timeout
         for (uint32_t attempt_num=0U; attempt_num < attempts; ++attempt_num) {
             Frame::Frame ack_frame;
             result = transact(&ack_frame, &handshake_frame, timeout_per);
-            if (result == SUCCESS && ack_frame.header.command == ACK) {
+            if ((result == SUCCESS && ack_frame.header.command == ACK)) {
                 break;
             } else if (result == SUCCESS) {
                 result = ERR_UNEXPECTED_CMD;
             }
-        }
-        if (result == ERR_PROCESS) {
-            result = ERR_TIMEOUT;
         }
     }
     return result;
