@@ -30,7 +30,7 @@ Master::Master(I_port& port,
                const uint32_t default_timeout)
                : serial_port(port), clock(clock_), slave_address(slave_addr), DEFAULT_TIMEOUT(default_timeout) {}
 
-uint32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
+int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
     uint32_t result = S_SERIAL_ERR;
     const uint32_t effective_timeout = (timeout == 0U) ? DEFAULT_TIMEOUT : timeout;
 
@@ -124,7 +124,7 @@ Receive_result Master::receive_packet(Frame::Frame* const frame_out,
     return result;
 }
 
-uint32_t Master::send_frame(const Frame::Frame* frame) {
+int32_t Master::send_frame(const Frame::Frame* frame) {
     uint32_t result = S_SERIAL_ERR;
     if (frame != NULL){
         Raw_frame raw_frame;
@@ -143,7 +143,7 @@ uint32_t Master::send_frame(const Frame::Frame* frame) {
     return result;
 }
 
-uint32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
+int32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
     uint32_t result = S_SERIAL_ERR;
     if (str != NULL) {
         const size_t payload_len = strlen(str);
@@ -153,7 +153,7 @@ uint32_t Master::send_string(const char* const str, const uint8_t cmd_byte) {
     return result;
 }
 
-uint32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
+int32_t Master::send_bytes(const uint8_t* const data, const uint8_t cmd_byte) {
     uint32_t result = S_SERIAL_ERR;
     if (data != NULL) {
         Frame::Frame frame;

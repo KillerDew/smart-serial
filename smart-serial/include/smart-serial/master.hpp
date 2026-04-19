@@ -66,17 +66,17 @@ namespace Smart_serial {
              * 
              * @param str String to send
              * @param cmd_byte Command byte to send
-             * @return uint32_t 1 if successful, S_SERIAL_ERR if not.
+             * @return int32_t 1 if successful, S_SERIAL_ERR if not.
              */
-            uint32_t send_string(const char* const str, const uint8_t cmd_byte);
+            int32_t send_string(const char* const str, const uint8_t cmd_byte);
             /**
              * @brief Sends byte buffer alongside a command
              * 
              * @param data Byte buffer to send
              * @param cmd_byte command to send
-             * @return uint32_t 1 if successful, S_SERIAL_ERR if not.
+             * @return int32_t 1 if successful, S_SERIAL_ERR if not.
              */
-            uint32_t send_bytes(const uint8_t* const data, const uint8_t cmd_byte);
+            int32_t send_bytes(const uint8_t* const data, const uint8_t cmd_byte);
 
             /**
              * @brief 
@@ -131,7 +131,7 @@ namespace Smart_serial {
             * @param timeout the timeout to use. Defaults to 5 seconds
             * @return int32_t 1 if successful, S_SERIAL_ERR if not
             */
-            uint32_t send_frame(const Frame::Frame* const frame);
+            int32_t send_frame(const Frame::Frame* const frame);
 
             /**
              * @brief Reads a raw frame from the ports buffer
@@ -140,7 +140,7 @@ namespace Smart_serial {
              * @param timeout The timeout to use, defaults to 3s
              * @return uint32_t 1 if successful, S_SERIAL_ERR if not
              */
-            uint32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, const uint32_t timeout=0U);
+            int32_t read_raw_frame(Frame::Raw_frame* const raw_frame_out, const uint32_t timeout=0U);
 
             Master(Master&) = delete;
             Master operator=(Master&) = delete;
