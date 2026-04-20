@@ -75,10 +75,12 @@ int Tests::test_master() {
         port.reset();
     }
     // Test 6: no response timeout (very short timeout)
-    Frame::Frame frame{};
-    Receive_result res = master.receive_packet(&frame, 1U); // 1ms timeout
-    CHECK("timeout", res == ERR_TIMEOUT);
-    port.reset();
+    {
+        Frame::Frame frame{};
+        Receive_result res = master.receive_packet(&frame, 1U); // 1ms timeout
+        CHECK("timeout", res == ERR_TIMEOUT, &pass, &fail);
+        port.reset();
+    }
 
     printf("\n%d/%d passed\n -- Done testing master implementations --\n", pass, pass + fail);
     return (fail == 0) ? 0 : 1;
