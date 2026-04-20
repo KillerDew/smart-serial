@@ -2,5 +2,5 @@
 #include <cstdio>
 using namespace std;
 int main() {
-    return Tests::test_master();
+    return Tests::test_slave();
 }
