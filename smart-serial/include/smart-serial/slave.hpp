@@ -34,6 +34,7 @@ namespace Smart_serial {
                 I_port& port, 
                 Clock::I_clock& clock, 
                 uint8_t this_addr,
+                uint8_t start_byte,
                 uint32_t default_timeout
             );
             ~Slave();

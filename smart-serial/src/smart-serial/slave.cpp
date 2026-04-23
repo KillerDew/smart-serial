@@ -24,8 +24,10 @@ Slave::Slave(
     I_port& port, 
     Clock::I_clock& clock, 
     uint8_t this_addr,
+    uint8_t start_byte,
     uint32_t default_timeout
-) : serial_port(port), clock(clock), this_address(this_addr), DEFAULT_TIMEOUT(default_timeout) {}
+) : serial_port(port), clock(clock), this_address(this_addr),
+    DEFAULT_TIMEOUT(default_timeout), start_byte(start_byte) {}
 
 Slave::~Slave(){}
 
@@ -41,12 +43,17 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
                 result = ERR_CRC;
             }
             else if ((build_frame_res == 1) && (valid_crc != ERR_PROCESS)) {
-                result = (frame_out->header.command == NACK) ? ERR_NACK : SUCCESS;
-                result = (frame_out->header.to_address != this_address) ? ERR_WRONG_ADDRESS : SUCCESS;
+                if (frame_out->header.command == NACK) {
+                    result = ERR_NACK;
+                } else if (frame_out->header.to_address != this_address) {
+                    result = ERR_WRONG_ADDRESS;
+                } else {
+                    result = SUCCESS;
+                }
                 if (
                     frame_out->header.command == ACK &&
                     frame_out->header.payload_len == 0U &&
-                    result > 0U &&
+                    result > 0 &&
                     auto_handshake
                 ) {
                     int32_t shake_res = send_response(frame_out);
@@ -137,22 +144,17 @@ int32_t Slave::read_raw_frame(Frame::Raw_frame* const raw_frame_out, uint32_t ti
                     raw_frame_out->data[raw_frame_out->length++] = static_cast<uint8_t>(read_byte);
                     
                     if (raw_frame_out->length == Frame::HEADER_SIZE) {
-                        if (raw_frame_out->data[2U] != this_address) {
-                            result = ERR_WRONG_ADDRESS;
-                        } else {
-                            // Last header byte is payload length — extend expected_total accordingly
-                            payload_len = raw_frame_out->data[Frame::HEADER_SIZE - 1U];
-                            expected_total += static_cast<size_t>(payload_len);
-                            stage2_done = true; // stage 2 done
-                            break;
-                        }
+                        // Last header byte is payload length — extend expected_total accordingly
+                        payload_len = raw_frame_out->data[Frame::HEADER_SIZE - 1U];
+                        expected_total += static_cast<size_t>(payload_len);
+                        stage2_done = true; // stage 2 done
+                        break;
                     }
         }
                 
         // Stage 3 — read payload and CRC bytes until frame is complete
         while (stage2_done &&
-              ((clock.millis() - start_time) < effective_timeout) &&
-              (raw_frame_out->length < expected_total)) {
+              ((clock.millis() - start_time) < effective_timeout)) {
             const int32_t read_byte = serial_port.read_byte();
             if (read_byte < 0) {
                 // No byte, continue

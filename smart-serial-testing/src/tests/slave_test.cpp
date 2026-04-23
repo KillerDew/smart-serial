@@ -18,7 +18,7 @@ int Tests::test_slave() {
     printf("-- Testing slave device implementations --\n");
     Mock_port<256, 256> port;
     Std_clock clock;
-    Slave slave(port, clock, 0x02U, 1000U);
+    Slave slave(port, clock, 0x02U, 0xAAU, 1000U);
     int pass=0; int fail = 0;
     // Helper lambda: builds a frame and injects it into the port's rx buffer
     auto inject_frame = [&](uint8_t cmd, const uint8_t* payload, size_t payload_len, uint8_t to_addr=0x02U, uint16_t crc=0U) {
@@ -70,7 +70,7 @@ int Tests::test_slave() {
         inject_frame(ACK, {}, 0U, 0x02U, 21U);
         Frame::Frame frame;
         Receive_result result = slave.receive_request(&frame, 0U);
-        CHECK("Receive NACK", result == Smart_serial::ERR_CRC, &pass, &fail);
+        CHECK("Receive CRC error", result == Smart_serial::ERR_CRC, &pass, &fail);
     }
 
     {
@@ -79,7 +79,7 @@ int Tests::test_slave() {
         inject_frame(NACK, {}, 0U);
         Frame::Frame frame;
         Receive_result result = slave.receive_request(&frame, 0U);
-        CHECK("Receive NACK", result == ERR_NACK, &pass, &fail);
+        CHECK("Receive success", result == ERR_NACK, &pass, &fail);
     }
     
 
