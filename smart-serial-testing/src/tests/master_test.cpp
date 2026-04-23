@@ -14,7 +14,7 @@ int Tests::test_master() {
     printf("-- Testing master device implementations --\n");
     Mock_port<256, 256> port;
     Std_clock clock;
-    Master master(port, clock, 0x02U, 1000U);
+    Master master(port, clock, 0x02U, 0xFFU, 1000U);
 
     int pass = 0, fail = 0;
 
