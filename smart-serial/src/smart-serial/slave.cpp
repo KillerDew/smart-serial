@@ -56,7 +56,17 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
                     result > 0 &&
                     auto_handshake
                 ) {
-                    int32_t shake_res = send_response(frame_out);
+                    Frame::Frame response_frame {
+                        Frame::Frame_header{
+                            start_byte,
+                            this_address,
+                            frame_out->header.from_address,
+                            ACK,
+                            0U
+                        },
+                        {}
+                    };
+                    int32_t shake_res = send_response(&response_frame);
                     result = (shake_res == 1) ? HANDLED : ERR_PROCESS;
                 }
             }
