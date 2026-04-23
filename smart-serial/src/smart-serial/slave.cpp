@@ -174,7 +174,7 @@ int32_t Slave::read_raw_frame(Frame::Raw_frame* const raw_frame_out, uint32_t ti
     return result;
 }
 
-int32_t validate_crc(const Frame::Raw_frame* raw_frame) {
+int32_t Slave::validate_crc(const Frame::Raw_frame* raw_frame) {
     int32_t result = ERR_PROCESS;
     if (raw_frame != NULL) {
         // Calculate expected crc and actual crc from raw frame
