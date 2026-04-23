@@ -9,12 +9,12 @@
  * 
  */
 
-#include "error.h"
-#include "port/iport.hpp"
-#include "types.h"
-#include "slave.hpp"
-#include "frame.hpp"
-#include "crc.hpp"
+#include "smart-serial/error.h"
+#include "smart-serial/port/iport.hpp"
+#include "smart-serial/types.h"
+#include "smart-serial/slave.hpp"
+#include "smart-serial/frame.hpp"
+#include "smart-serial/crc.hpp"
 #include <cstdint>
 
 using namespace Smart_serial;
@@ -37,12 +37,21 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
         if (read_result == 1) {
             int32_t valid_crc = validate_crc(&raw_frame);
             int32_t build_frame_res = Frame::parse_frame(frame_out, &raw_frame);
-            if ((build_frame_res == 1) && (valid_crc != ERR_PROCESS)) {
-                result = (frame_out->header.command == NACK) ? ERR_NACK : SUCCESS;
-            }
-            // CRC errors take precendent over NACK errors
             if (valid_crc == ERR_CRC) {
                 result = ERR_CRC;
+            }
+            else if ((build_frame_res == 1) && (valid_crc != ERR_PROCESS)) {
+                result = (frame_out->header.command == NACK) ? ERR_NACK : SUCCESS;
+                result = (frame_out->header.to_address != this_address) ? ERR_WRONG_ADDRESS : SUCCESS;
+                if (
+                    frame_out->header.command == ACK &&
+                    frame_out->header.payload_len == 0U &&
+                    result > 0U &&
+                    auto_handshake
+                ) {
+                    int32_t shake_res = send_response(frame_out);
+                    result = (shake_res == 1) ? HANDLED : ERR_PROCESS;
+                }
             }
         } else if (read_result == S_SERIAL_ERR_TIMEOUT) {
             result = ERR_TIMEOUT;
