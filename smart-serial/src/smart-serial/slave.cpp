@@ -37,13 +37,16 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
     Receive_result result = ERR_PROCESS;
     if (frame_out != NULL) {
         Frame::Raw_frame raw_frame;
+        // Read a raw frame from rx buffer
         int32_t read_result = read_raw_frame(&raw_frame, timeout);
         if (read_result == 1) {
+            // Validate the crc and build a decomposed frame
             int32_t valid_crc = validate_crc(&raw_frame);
             int32_t build_frame_res = Frame::parse_frame(frame_out, &raw_frame);
             if (valid_crc == ERR_CRC) {
                 result = ERR_CRC;
             }
+            // Analyse frame for potential erros e.g. NACK or wrong address
             else if ((build_frame_res == 1) && (valid_crc != ERR_PROCESS)) {
                 if (frame_out->header.command == NACK) {
                     result = ERR_NACK;
@@ -52,6 +55,7 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
                 } else {
                     result = SUCCESS;
                 }
+                // If all is okay and auto_handshake is on, send an identical ACK response
                 if (
                     frame_out->header.command == ACK &&
                     frame_out->header.payload_len == 0U &&
@@ -81,6 +85,7 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
 int32_t Slave::send_response(const uint8_t* const buf, const uint8_t cmd_byte) {
     int32_t result = S_SERIAL_ERR;
     if (buf != NULL){
+        // Create frame and send
         Frame::Frame response_frame {
             Frame::Frame_header {
                 start_byte,
@@ -96,10 +101,12 @@ int32_t Slave::send_response(const uint8_t* const buf, const uint8_t cmd_byte) {
     return result;
 }
 int32_t Slave::send_response(const char* const str, const uint8_t cmd_byte) {
+    // Convert str to byte array and delegate to overload
     const uint8_t* buf = reinterpret_cast<const uint8_t*>(str);
     return send_response(buf, cmd_byte);
 }
 
+// Setter functions --
 void Slave::set_start_byte(const uint8_t byte) {
     start_byte = byte;
 }
@@ -109,6 +116,7 @@ void Slave::set_this_address(const uint8_t byte) {
 void Slave::set_auto_handshake(const bool auto_shake) {
     auto_handshake = auto_shake;
 }
+// --
 
 int32_t Slave::send_response(const Frame::Frame* frame) {
     int32_t result = S_SERIAL_ERR;

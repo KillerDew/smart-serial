@@ -28,6 +28,7 @@ namespace Smart_serial {
              * @param port Serial (interface) port to read and write from
              * @param clock The clock (interface) to use
              * @param this_addr the address of this device
+             * @param master_addr The address of the master device
              * @param default_timeout Default timeout to use.
              */
             Slave(
@@ -38,12 +39,13 @@ namespace Smart_serial {
                 uint8_t start_byte,
                 uint32_t default_timeout
             );
+            /** @brief Destroy the Slave object */
             ~Slave();
 
             /**
              * @brief Recieve a request (frame)
              * 
-             * @param frame_out The frame read
+             * @param frame_out The frame that is read
              * @param timeout The timeout to use (0 = device default)
              * @return Receive_result The status of the receive operation
              */
@@ -105,7 +107,7 @@ namespace Smart_serial {
             /**
              * @brief Read a raw frame from serial buffer
              * 
-             * @param frame_out Raw frame ouput
+             * @param frame_out Raw frame output
              * @param timeout timeout to use (0 = device default)
              * @return int32_t 1 if successful, corresponding error code if not
              */
