@@ -34,6 +34,7 @@ namespace Smart_serial {
                 I_port& port, 
                 Clock::I_clock& clock, 
                 uint8_t this_addr,
+                uint8_t master_addr,
                 uint8_t start_byte,
                 uint32_t default_timeout
             );
@@ -72,6 +73,9 @@ namespace Smart_serial {
             /** @brief set this device's address
                 @param adress address byte */
             void set_this_address(const uint8_t address);
+            /** @brief set the master's adress
+                @param address the address byte */
+            void set_master_adress(const uint8_t address);
             /** @brief set whether or not to automatically ACK on a received handshake packet
                 @param auto_shake value to set to */
             void set_auto_handshake(const bool auto_shake);
@@ -79,6 +83,8 @@ namespace Smart_serial {
             I_port& serial_port;
             
             uint8_t this_address;
+
+            uint8_t master_address;
 
             uint8_t start_byte;
 

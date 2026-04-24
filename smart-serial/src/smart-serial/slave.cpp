@@ -16,6 +16,7 @@
 #include "smart-serial/frame.hpp"
 #include "smart-serial/crc.hpp"
 #include <cstdint>
+#include <string.h>
 
 using namespace Smart_serial;
 using namespace Smart_serial::CRC;
@@ -24,10 +25,11 @@ Slave::Slave(
     I_port& port, 
     Clock::I_clock& clock, 
     uint8_t this_addr,
+    uint8_t master_addr,
     uint8_t start_byte,
     uint32_t default_timeout
 ) : serial_port(port), clock(clock), this_address(this_addr),
-    DEFAULT_TIMEOUT(default_timeout), start_byte(start_byte) {}
+    master_address(master_addr), DEFAULT_TIMEOUT(default_timeout), start_byte(start_byte) {}
 
 Slave::~Slave(){}
 
@@ -75,6 +77,27 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
         }
     }
     return result;
+}
+int32_t Slave::send_response(const uint8_t* const buf, const uint8_t cmd_byte) {
+    int32_t result = S_SERIAL_ERR;
+    if (buf != NULL){
+        Frame::Frame response_frame {
+            Frame::Frame_header {
+                start_byte,
+                this_address,
+                master_address,
+                cmd_byte,
+                sizeof(buf),
+            }
+        };
+        static_cast<void>(memcpy(response_frame.payload, buf, response_frame.header.payload_len));
+        result = send_response(&response_frame);
+    }
+    return result;
+}
+int32_t Slave::send_response(const char* const str, const uint8_t cmd_byte) {
+    const uint8_t* buf = reinterpret_cast<const uint8_t*>(str);
+    return send_response(buf, cmd_byte);
 }
 
 void Slave::set_start_byte(const uint8_t byte) {
