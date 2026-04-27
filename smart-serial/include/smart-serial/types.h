@@ -19,6 +19,7 @@ namespace Smart_serial {
 
 
 enum Receive_result {
+        HANDLED = 2,
         SUCCESS = 1,
         ERR_NACK = 0,
         ERR_CRC = -1,

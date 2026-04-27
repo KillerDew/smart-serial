@@ -2,5 +2,6 @@
 #include <cstdio>
 using namespace std;
 int main() {
-    return Tests::test_master();
+    bool slave_tests = Tests::test_slave();
+    bool master_tests = Tests::test_master();
 }

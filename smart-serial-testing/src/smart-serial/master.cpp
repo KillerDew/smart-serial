@@ -29,8 +29,11 @@ using namespace Smart_serial::CRC;
 Master::Master(I_port& port,
                I_clock& clock_,
                const uint8_t slave_addr,
+               const uint8_t this_addr,
                const uint32_t default_timeout)
-               : serial_port(port), clock(clock_), slave_address(slave_addr), DEFAULT_TIMEOUT(default_timeout) {}
+               : serial_port(port), clock(clock_),
+               slave_address(slave_addr), this_address(this_addr),
+               DEFAULT_TIMEOUT(default_timeout) {}
 
 int32_t Master::read_raw_frame(Raw_frame* const raw_frame_out, const uint32_t timeout) {
     int32_t result = S_SERIAL_ERR;

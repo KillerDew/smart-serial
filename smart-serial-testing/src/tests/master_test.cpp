@@ -14,12 +14,9 @@ int Tests::test_master() {
     printf("-- Testing master device implementations --\n");
     Mock_port<256, 256> port;
     Std_clock clock;
-    Master master(port, clock, 0x02U, 1000U);
+    Master master(port, clock, 0x02U, 0xFFU, 1000U);
 
     int pass = 0, fail = 0;
-    #define CHECK(label, cond) \
-        if (cond) { printf("PASS - %s\n", label); ++pass; } \
-        else      { printf("FAIL - %s\n", label); ++fail; }
 
     // Helper lambda: builds a frame and injects it into the port's rx buffer
     auto inject_frame = [&](uint8_t cmd, const uint8_t* payload, size_t payload_len) {
@@ -38,7 +35,7 @@ int Tests::test_master() {
         inject_frame(ACK, nullptr, 0U);
         Frame::Frame frame{};
         Receive_result res = master.receive_packet(&frame, 1000U);
-        CHECK("receive ACK", res == SUCCESS);
+        CHECK("receive ACK", res == SUCCESS, &pass, &fail);
         port.reset();
     }
 
@@ -47,21 +44,21 @@ int Tests::test_master() {
         inject_frame(NACK, nullptr, 0U);
         Frame::Frame frame{};
         Receive_result res = master.receive_packet(&frame, 1000U);
-        CHECK("receive NACK", res == ERR_NACK);
+        CHECK("receive NACK", res == ERR_NACK, &pass, &fail);
         port.reset();
     }
 
     // Test 3: null frame_out guard
     {
         Receive_result res = master.receive_packet(nullptr, 1000U);
-        CHECK("null frame_out", res == ERR_PROCESS);
+        CHECK("null frame_out", res == ERR_PROCESS, &pass, &fail);
     }
 
     // Test 4: handshake succeeds
     {
         inject_frame(ACK, nullptr, 0U);
         Receive_result res = master.handshake(3U, 1000U);
-        CHECK("handshake", res == SUCCESS);
+        CHECK("handshake", res == SUCCESS, &pass, &fail);
         port.reset();
     }
 
@@ -71,15 +68,15 @@ int Tests::test_master() {
         inject_frame(0x42U, payload, sizeof(payload));
         Frame::Frame frame{};
         Receive_result res = master.receive_packet(&frame, 1000U);
-        CHECK("receive with payload", res == SUCCESS && frame.header.payload_len == 3U);
+        CHECK("receive with payload", res == SUCCESS && frame.header.payload_len == 3U, &pass, &fail);
         port.reset();
     }
     // Test 6: no response timeout (very short timeout)
     Frame::Frame frame{};
     Receive_result res = master.receive_packet(&frame, 1U); // 1ms timeout
-    CHECK("timeout", res == ERR_TIMEOUT);
+    CHECK("timeout", res == ERR_TIMEOUT, &pass, &fail);
     port.reset();
 
-    printf("\n%d/%d passed\n -- Done testing master implementations --\n", pass, pass + fail);
+    printf("%d/%d passed\n -- Done testing master implementations --\n", pass, pass + fail);
     return (fail == 0) ? 0 : 1;
 }
