@@ -81,12 +81,7 @@ int Tests::test_slave() {
         Receive_result result = slave.receive_request(&frame, 0U);
         CHECK("Receive success", result == ERR_NACK, &pass, &fail);
     }
-    
-
-    
-    
-
-    printf("%i/%i passed", pass, pass+fail);
+    printf("%i/%i passed\n--Done Testing slave implementations--\n", pass, pass+fail);
 
     return (fail == 0);
 }

@@ -77,6 +77,6 @@ int Tests::test_master() {
     CHECK("timeout", res == ERR_TIMEOUT, &pass, &fail);
     port.reset();
 
-    printf("\n%d/%d passed\n -- Done testing master implementations --\n", pass, pass + fail);
+    printf("%d/%d passed\n -- Done testing master implementations --\n", pass, pass + fail);
     return (fail == 0) ? 0 : 1;
 }
