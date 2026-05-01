@@ -55,10 +55,13 @@ namespace Smart_serial {
              * @brief Send a response using a buffer as the payload
              * 
              * @param buf The payload to send
+             * @param length Length of byte buffer
              * @param cmd_byte The command to send with payload
              * @return int32_t 1 if successful, corresponding error code if not
              */
-            int32_t send_response(const uint8_t* const buf, const uint8_t cmd_byte);
+            int32_t send_response(const uint8_t* const buf,
+                                  const size_t length,
+                                  const uint8_t cmd_byte);
 
             /**
              * @brief Send a response using a string as a payload

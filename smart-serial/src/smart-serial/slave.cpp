@@ -82,7 +82,9 @@ Receive_result Slave::receive_request(Frame::Frame* const frame_out, uint32_t ti
     }
     return result;
 }
-int32_t Slave::send_response(const uint8_t* const buf, const uint8_t cmd_byte) {
+int32_t Slave::send_response(const uint8_t* const buf,
+                             const size_t length,
+                             const uint8_t cmd_byte) {
     int32_t result = S_SERIAL_ERR;
     if (buf != NULL){
         // Create frame and send
@@ -92,9 +94,9 @@ int32_t Slave::send_response(const uint8_t* const buf, const uint8_t cmd_byte) {
                 this_address,
                 master_address,
                 cmd_byte,
-                sizeof(buf),
             }
         };
+        response_frame.header.payload_len = length;
         static_cast<void>(memcpy(response_frame.payload, buf, response_frame.header.payload_len));
         result = send_response(&response_frame);
     }
@@ -103,7 +105,7 @@ int32_t Slave::send_response(const uint8_t* const buf, const uint8_t cmd_byte) {
 int32_t Slave::send_response(const char* const str, const uint8_t cmd_byte) {
     // Convert str to byte array and delegate to overload
     const uint8_t* buf = reinterpret_cast<const uint8_t*>(str);
-    return send_response(buf, cmd_byte);
+    return send_response(buf, strlen(str), cmd_byte);
 }
 
 // Setter functions --
