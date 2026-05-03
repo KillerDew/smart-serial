@@ -29,9 +29,9 @@ Pros_serial_port::Pros_serial_port(const uint32_t smart_port_num, const uint32_t
 Pros_serial_port::~Pros_serial_port() {} // PROS handles cleanup.
 
 // Write is delegated to pros::Serial::write()
-int32_t Pros_serial_port::write(uint8_t *buf, uint16_t len) {
+int32_t Pros_serial_port::write(const uint8_t *buf, const uint16_t len) {
 
-    const int32_t result = serial_port.write(static_cast<uint8_t*>(buf), static_cast<size_t>(len));
+    const int32_t result = serial_port.write(const_cast<uint8_t*>(buf), static_cast<size_t>(len));
 
     // Convert PROS_ERR to S_SERIAL_ERR, otherwise return bytes written.
     return (result == PROS_ERR) ? S_SERIAL_ERR : result;

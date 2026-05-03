@@ -42,7 +42,7 @@ namespace Smart_serial {
              * @param len number of bytes to transmit
              * @return int32_t Bytes successfully transmitted, or S_SERIAL_ERR on error
              */
-            int32_t write(uint8_t *buf, uint16_t len) override;
+            int32_t write(const uint8_t *buf, const uint16_t len) override;
 
             /**
              * @brief Read a single byte from the serial port without blocking.

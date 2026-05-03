@@ -35,7 +35,7 @@ namespace Smart_serial {
              * @param len length of data to be transmitted
              * @return int32_t number of bytes successfully transmitted, or S_SERIAL_ERR on error
              */
-            virtual int32_t write(uint8_t *buf, uint16_t len) = 0;
+            virtual int32_t write(const uint8_t *buf, const uint16_t len) = 0;
         
             /**
              * @brief reads single byte from serial buffer without blocking.

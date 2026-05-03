@@ -45,7 +45,7 @@ namespace Smart_serial {
              * @param len length of data to write. Must not exceed TX_CAP.
              * @return int32_t Number of bytes written, or S_SERIAL_ERR on error
              */
-            int32_t write (uint8_t *buf, uint16_t len) override;
+            int32_t write (const uint8_t *buf, const uint16_t len) override;
 
             /**
              * @brief Read single byte from mock rx buffer. Must be injected into first using inject_rx().
@@ -113,7 +113,7 @@ namespace Smart_serial {
     Mock_port<TX_CAP, RX_CAP>::~Mock_port() {} // No dynamic memory, trivial destructor.
 
     template<uint16_t TX_CAP, uint16_t RX_CAP>
-    int32_t Mock_port<TX_CAP, RX_CAP>::write(uint8_t *buf, uint16_t len) {
+    int32_t Mock_port<TX_CAP, RX_CAP>::write(const uint8_t *buf, const uint16_t len) {
         int32_t result = S_SERIAL_ERR;
         if ((buf != NULL) && (tx_len <= (TX_CAP - len))) { // Check for null buffer and sufficient space in tx buffer.
             static_cast<void>(
